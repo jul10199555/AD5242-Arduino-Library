@@ -1,40 +1,46 @@
-# Syntax Colouring Map For AD524X
+###########################################
+# Syntax Coloring Map for AD5242
+###########################################
 
-# Data types (KEYWORD1)
-AD524X	KEYWORD1
-AD5241	KEYWORD1
+###########################################
+# Class names or datatypes	(KEYWORD1)  [Orange]
+###########################################
+
 AD5242	KEYWORD1
-AD5280	KEYWORD1
-AD5282	KEYWORD1
 
+###########################################
+# Methods and Functions			(KEYWORD2)  [Brown]
+###########################################
 
-# Methods and Functions (KEYWORD2)
 begin	KEYWORD2
 isConnected	KEYWORD2
 getAddress	KEYWORD2
-
-reset	KEYWORD2
-zeroAll	KEYWORD2
+pmCount	KEYWORD2
 
 read	KEYWORD2
+readResistance	KEYWORD2
+getResistancePercent	KEYWORD2
 write	KEYWORD2
+writeResistance	KEYWORD2
 
 setO1	KEYWORD2
 setO2	KEYWORD2
 getO1	KEYWORD2
 getO2	KEYWORD2
 
+reset	KEYWORD2
+zeroAll	KEYWORD2
 midScaleReset	KEYWORD2
-pmCount	KEYWORD2
 
 readBackRegister	KEYWORD2
 shutDown	KEYWORD2
 
+###########################################
+# Constants & special words  (LITERAL1)  [Teal/Blue]
+###########################################
 
-# Constants (LITERAL1)
-AD524X_LIB_VERSION	LITERAL1
+AD5242_LIB_VERSION	LITERAL1
 
-AD524X_OK	LITERAL1
-ADS524X_ERROR	LITERAL1
-AD524X_MIDPOINT	LITERAL1
-
+AD5242_OK	LITERAL1
+AD5242_ERROR	LITERAL1
+AD5242_MIDPOINT	LITERAL1
