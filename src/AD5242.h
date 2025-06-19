@@ -22,7 +22,7 @@ class AD5242 {
 public:
   AD5242(const uint8_t address, TwoWire *wire = &Wire);
 
-  bool    begin();
+  bool    begin(const uint32_t PRating);
   bool    isConnected();
   uint8_t getAddress();
   uint8_t pmCount();
