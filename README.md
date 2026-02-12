@@ -1,182 +1,136 @@
+# AD5242
 
-[![Arduino CI](https://github.com/RobTillaart/AD524X/workflows/Arduino%20CI/badge.svg)](https://github.com/marketplace/actions/arduino_ci)
-[![Arduino-lint](https://github.com/RobTillaart/AD524X/actions/workflows/arduino-lint.yml/badge.svg)](https://github.com/RobTillaart/AD524X/actions/workflows/arduino-lint.yml)
-[![JSON check](https://github.com/RobTillaart/AD524X/actions/workflows/jsoncheck.yml/badge.svg)](https://github.com/RobTillaart/AD524X/actions/workflows/jsoncheck.yml)
-[![GitHub issues](https://img.shields.io/github/issues/RobTillaart/AD524X.svg)](https://github.com/RobTillaart/AD524X/issues)
-
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/RobTillaart/AD524X/blob/master/LICENSE)
-[![GitHub release](https://img.shields.io/github/release/RobTillaart/AD524X.svg?maxAge=3600)](https://github.com/RobTillaart/AD524X/releases)
-[![PlatformIO Registry](https://badges.registry.platformio.org/packages/robtillaart/library/AD524X.svg)](https://registry.platformio.org/libraries/robtillaart/AD524X)
-
-
-# AD524X
-
-Arduino class for I2C digital potentiometer AD5241 AD5242 AD5280 AD5282.
-
+Arduino library for the AD5242 I2C dual digital potentiometer.
 
 ## Description
 
-The AD5241, AD5242, AD5280 and AD5282 are digital potentiometers.
-The AD5241/80 has one, the AD5242/82 has two potentiometers.
-Both types have two output lines O1 and O2.
+The AD5242 provides two potentiometer channels (RDAC1 and RDAC2) with 256 steps.
+Available resistance ratings are 10k, 100k, and 1M.
 
-The main difference in the AD524x and AD528x series is the resistance.
-See the table below.
+The device powers up at midscale. This library defines `AD5242_MIDPOINT` as 127.
 
-The AD5280/82 is compatible with AD5241/42 (based upon datasheet compare).
-The library provides separate classes for the AD5280/82 however these are 
-not tested with actual hardware yet.
-Please let me know if you get the AD5280/82 classes working.
+## I2C Address
 
-|  device  |  channels  |  steps  |  ranges KΩ      | 
-|:--------:|:----------:|:-------:|:---------------:|
-|  AD5241  |     1      |   256   |  10, 100, 1000  |
-|  AD5242  |     2      |   256   |  10, 100, 1000  |
-|  AD5280  |     1      |   256   |  20,  50,  200  |
-|  AD5282  |     2      |   256   |  20,  50,  200  |
+The AD5242 has two address pins (AD1, AD0) to configure the I2C address 0x2C - 0x2F.
 
+| Addr (Hex) | AD1 | AD0 |
+|:----------:|:---:|:---:|
+|   0x2C     | GND | GND |
+|   0x2D     | GND | VDD |
+|   0x2E     | VDD | GND |
+|   0x2F     | VDD | VDD |
 
-An important property of the devices is that they defaults
-to their mid position at startup.
-
-The library defines AD524X_MIDPOINT == 127.
-To be used to set to defined mid-point.
-
-
-#### 0.5.0 Breaking change
-
-The ESP32 specific **begin(sda, scl)** is removed.
-The user has to call **Wire.begin()** or equivalent himself before calling **begin()**.
-
-
-#### Related
-
-- https://github.com/RobTillaart/AD520x
-- https://github.com/RobTillaart/AD524X
-- https://github.com/RobTillaart/AD5245
-- https://github.com/RobTillaart/AD5248 (also AD5243)
-- https://github.com/RobTillaart/AD5144A
-- https://github.com/RobTillaart/AD5263
-- https://github.com/RobTillaart/X9C10X
-
-
-#### Compatibles ?
-
-If you find compatible devices please let me know.
-
-
-## I2C address
-
-The AD524X has two address lines to configure the I2C address. 0x2C - 0x2F
-
-| Addr(dec)| Addr(Hex) |  AD1  |  AD0  |
-|:--------:|:---------:|:-----:|:-----:|
-|  44      |  0x2C     |  GND  |  GND  |
-|  45      |  0x2D     |  GND  |  +5V  |
-|  46      |  0x2E     |  +5V  |  GND  |
-|  47      |  0x2F     |  +5V  |  +5V  |
-
-
-## Interface
+## Usage
 
 ```cpp
-#include "AD524X.h"
+#include "AD5242.h"
+
+AD5242 pot(0x2C);
+
+void setup() {
+  Wire.begin();
+  AD5242Status status = pot.begin(AD5242_R100K);
+  if (status != AD5242_OK) {
+    // handle error
+  }
+}
 ```
 
-The library has a number of functions which are all quite straightforward.
-One can get / set the value of (both) the potentiometer(s), and the O1 and O2 output lines.
+`begin()` does not call `Wire.begin()`; you must initialize the I2C bus yourself.
 
+## API
 
-#### Constructors
+### Initialization and Info
 
-- **AD524X(uint8_t address, TwoWire \*wire = &Wire)** constructor base class,
-creates an instance with 2 potentiometer.
-This class does not distinguish between AD5241/42/80/82.
-The developer is responsible for handling this correctly.
-- **AD5241(uint8_t address, TwoWire \*wire = &Wire)** create an instance with 1 potentiometer.
-- **AD5242(uint8_t address, TwoWire \*wire = &Wire)** create an instance with 2 potentiometer.
-- **AD5280(uint8_t address, TwoWire \*wire = &Wire)** create an instance with 1 potentiometer.
-- **AD5282(uint8_t address, TwoWire \*wire = &Wire)** create an instance with 2 potentiometer.
+- `AD5242Status begin(uint32_t potRating)` initializes the device and caches the rating.
+- `bool isConnected() const` checks if the device ACKs on the I2C bus.
+- `uint8_t address() const` returns the configured I2C address.
+- `uint8_t channelCount() const` returns 2.
+- `bool isInitialized() const` returns whether a valid rating was provided.
+- `uint32_t potRating() const` returns the configured rating.
+- `AD5242Status lastStatus() const` returns the status of the last API call that sets it.
+- `uint8_t hwEnablePin() const` returns the configured HW enable output (1 or 2), or 0 if disabled.
+- `AD5242Status setABRvalue(uint8_t rdac, uint32_t abResistance)` sets the measured A-to-B resistance for the channel.
 
+Valid ratings:
+- `AD5242_R10K`
+- `AD5242_R100K`
+- `AD5242_R1M`
 
-#### Wire initialization
+If `setABRvalue()` is used, that per-channel value is used for resistance calculations and `writeResistance()` instead of the nominal rating.
 
-- **bool begin()** initialization of the object. 
-Note the user must call **wire.begin()** or equivalent before calling **begin()**.
-- **bool isConnected()** See if the address set in constructor is on the I2C bus.
-- **uint8_t getAddress()** returns address set in constructor, convenience.
+### Read / Cached Values
 
+The AD5242 does not support reading RDAC values directly. This library caches values written by `write()` and
+returns them from the methods below.
 
-#### Basic IO
+Channel numbers are **1** and **2** (datasheet naming).
 
-- **uint8_t write(uint8_t rdac, uint8_t value)** set channel rdac 0/1 to value 0..255.
-- **uint8_t write(uint8_t rdac, uint8_t value, uint8_t O1, uint8_t O2)** idem + set output lines O1 and O2 too.
-- **uint8_t read(uint8_t rdac)** read back set value.
-- **uint8_t setO1(uint8_t value = HIGH)** value = HIGH (default) or LOW.
-- **uint8_t setO2(uint8_t value = HIGH)** value = HIGH (default) or LOW.
-- **uint8_t getO1()** read back O1 line.
-- **uint8_t getO2()** read back O2 line.
+- `uint8_t getLastValue(uint8_t rdac)`
+- `uint32_t getResistance(uint8_t rdac, char direction = 'B')`
+- `uint32_t getResistance(uint8_t rdac, const char *direction)`
+- `uint8_t getResistancePercent(uint8_t rdac, char direction = 'B')`
+- `uint8_t getResistancePercent(uint8_t rdac, const char *direction)`
 
+Direction:
+- `'B'` (default) returns B-to-wiper resistance.
+- `'A'` returns A-to-wiper resistance.
+Both `char` and string inputs (e.g. `"A"`) are accepted.
 
-#### Misc
+Use `lastStatus()` to detect errors from these value-returning methods.
 
-- **uint8_t zeroAll()** sets potentiometer's to 0 and I/O to LOW.
-- **uint8_t reset()** sets potentiometer's to midpoint == 127 and I/O to LOW. (startup default)
-- **uint8_t midScaleReset(uint8_t rdac)** resets one potentiometer to midpoint == 127.
-- **uint8_t readBackRegister()** read register back, for debugging.
+### Write
 
+- `AD5242Status write(uint8_t rdac, uint8_t value)`
+- `AD5242Status write(uint8_t rdac, uint8_t value, bool o1, bool o2)`
+- `AD5242Status writeResistance(uint8_t rdac, uint32_t value)`
+- `AD5242Status writeResistance(uint8_t rdac, uint32_t value, char direction)`
+- `AD5242Status writeResistance(uint8_t rdac, uint32_t value, const char *direction)`
+- `AD5242Status writeResistance(uint8_t rdac, uint32_t value, bool o1, bool o2)`
+- `AD5242Status writeResistance(uint8_t rdac, uint32_t value, bool o1, bool o2, char direction)`
+- `AD5242Status writeResistance(uint8_t rdac, uint32_t value, bool o1, bool o2, const char *direction)`
 
-#### Experimental
+Direction selects whether `value` refers to A-to-wiper (`'A'`) or B-to-wiper (`'B'`, default).
+`rdac` is **1** or **2**.
 
-- **uint8_t shutDown()** check datasheet, not tested yet, use at own risk.
+### Output Lines
 
+- `AD5242Status setO1(bool value = true)`
+- `AD5242Status setO2(bool value = true)`
+- `bool getO1() const`
+- `bool getO2() const`
+- `AD5242Status setO(uint8_t output, bool value)`
+- `bool getO(uint8_t output)`
 
-## Interface AD5421 + AD5280 specific
+`output` is **1** or **2**.
 
-Since 0.4.1 the library supports writing explicit to port 0
-as that is the only port.
+### Hardware Enable
 
-- **uint8_t write(const uint8_t value)** set rdac 0 to value 0..255.
-- **uint8_t write(const uint8_t value, const uint8_t O1, const uint8_t O2)**
-idem + set output lines O1 and O2 too.
+Use one of the output lines (O1 or O2) as a hardware enable pin by passing it in the constructor:
 
-Note that **uint8_t write(rdac, value)** and **uint8_t write(rdac, value, O1, O2)**
-can be called and return **AD524X_ERROR** if **rdac > 0**. 
+```cpp
+AD5242 pot(0x2C, 1, &Wire);  // use O1 as HW enable
+```
 
+- `AD5242Status HWEnable()` sets the configured output HIGH.
+- `AD5242Status HWDisable()` sets the configured output LOW.
 
-## Error codes
+If `hwEnablePin` is configured, `begin()` will enable it by default.
+`reset()` will also re-enable it after resetting the channels.
 
-|  define        |  value  |
-|:---------------|:-------:|
-|  AD524X_OK     |   0     |
-|  AD524X_ERROR  |   100   |
+### Reset / Misc
 
+- `AD5242Status reset()` sets both channels to midpoint and outputs to LOW.
+- `AD5242Status zeroAll()` sets both channels to 0 and outputs to LOW.
+- `AD5242Status midScaleReset(uint8_t rdac)` resets one channel to midpoint.
+- `AD5242Status readBackRegister(uint8_t &value)` reads the last value written (datasheet).
+- `AD5242Status shutDown()` issues the shutdown command (datasheet).
 
-## Future
+## Error Codes
 
-#### Must
-
-- improve documentation.
-
-#### Should
-
-- verify the working of AD5280 and AD5282.
-- improve error handling.
-- sync with AD520X library.
-
-#### Could
-
-
-#### Wont
-
-- make midpoint 128
-
-
-## Support
-
-If you appreciate my libraries, you can support the development and maintenance.
-Improve the quality of the libraries by providing issues and Pull Requests, or
-donate through PayPal or GitHub sponsors.
-
-Thank you,
-
+| Code | Meaning |
+|:----:|:--------|
+| `AD5242_OK` | Success |
+| `AD5242_ERR_I2C` | I2C transaction failed |
+| `AD5242_ERR_PARAM` | Invalid parameter |
+| `AD5242_ERR_NOT_INITIALIZED` | Rating not set |

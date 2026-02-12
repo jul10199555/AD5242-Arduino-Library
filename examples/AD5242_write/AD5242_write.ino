@@ -1,5 +1,5 @@
 //
-//    FILE: AD5242_write_RP2040.ino
+//    FILE: AD5242_write.ino
 //  AUTHOR: Rob Tillaart
 // PURPOSE: AD5242 demo program
 //     URL: https://github.com/RobTillaart/AD5242
@@ -18,8 +18,6 @@ void setup()
   Serial.print("AD5242_LIB_VERSION: ");
   Serial.println(AD5242_LIB_VERSION);
 
-  Wire.setSDA(12);  //  adjust if needed
-  Wire.setSCL(13);  //  adjust if needed
   Wire.begin();
   Wire.setClock(400000);
 
@@ -53,3 +51,4 @@ void loop()
 
 
 //  -- END OF FILE --
+

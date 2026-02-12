@@ -1,7 +1,7 @@
 {
   "name": "AD5242",
   "keywords": "I2C, digital, PotentioMeter, AD5242",
-  "description": "Library to control digital potentiometer AD5242",
+  "description": "Library to control the AD5242 dual digital potentiometer",
   "authors":
   [
     {
@@ -13,9 +13,9 @@
   "repository":
   {
     "type": "git",
-    "url": "https://github.com/RobTillaart/AD524X"
+    "url": "https://github.com/RobTillaart/AD5242"
   },
-  "version": "0.1.2",
+  "version": "0.3.0",
   "license": "MIT",
   "frameworks": "*",
   "platforms": "*",

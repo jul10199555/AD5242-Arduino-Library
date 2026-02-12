@@ -1,64 +1,25 @@
-# Change Log AD524X
+# Change Log AD5242
 
 All notable changes to this project will be documented in this file.
+The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/)
-and this project adheres to [Semantic Versioning](http://semver.org/).
+## [0.3.0] - 2026-02-12
+- breaking: switch RDAC numbering to 1/2 to match datasheet.
+- breaking: simplify cached read methods to return values directly and add lastStatus().
+- add direction support (A/B) for resistance reads and writes.
+- add writeResistance() overload without O1/O2 parameters.
+- add HWEnable/HWDisable using O1 or O2.
+- add setABRvalue() for per-channel A-B calibration.
+- update examples, README, and keywords.
 
+## [0.2.0] - 2026-02-11
+- breaking: refactor to AD5242-only API and documentation.
+- breaking: replace ambiguous value returns with status + out-parameter API.
+- add rating constants and initialization state helpers.
+- fix writeResistance() to allow full-scale values.
+- fix cached value updates to only occur after successful I2C writes.
+- fix constructor initialization order warning.
+- update examples, README, and keywords.
 
-## [0.5.1] - 2024-03-16
-- add **getAddress()** (e.g. debugging)
-- improved **AD5241::write(rdac, ...)**
-- improved **AD5280::write(rdac, ...)**
-- update GitHub actions
-- update keywords.txt
-- minor edits examples
-
-
-## [0.5.0] - 2023-11-29
-- remove ESP32 specific **begin()**
-- add (experimental) support or AD5280 / AD5282.
-- fix #23 in readme
-- update and add examples.
-
-----
-
-## [0.4.2] - 2023-09-21
-- add Wire1 support for ESP32
-- update readme.md
-
-## [0.4.1] - 2023-02-26
-- fix #17 support **AD5241::write()**
-- update readme.md
-
-## [0.4.0] - 2023-02-03
-- fix #18 support Wire2 (RP2040 etc)
-
-----
-
-## [0.3.6] - 2023-01-11
-- update GitHub actions
-- update license
-- move code to .cpp
-- add define for AD524X_MIDPOINT
-- add comments
-- minor edits
-
-
-## [0.3.5] - 2022-10-25
-- add changelog.md
-- add RP2040 in build-CI
-
-## [0.3.4] - 2022-08-13
-- fix AD524X_LIB_VERSION
-- minor edits,
-
-## [0.3.3] - 2021-12-10
-- update constants, library.json, license
-
-## [0.3.2] - 2021-10-16
-- fix build-CI, update readme.md
-
-
-That's all folks!
-
+## [0.1.2] - 2013-10-12
+- initial release.
