@@ -34,7 +34,7 @@ void loop()
   bool o1 = false;
   bool o2 = true;
 
-  for (int val = 0; val <= AD5242_MAX_VALUE; val += 51)
+  for (int val = 1; val < AD5242_MAX_VALUE; val += 51)
   {
     o1 = !o1;
     o2 = !o2;

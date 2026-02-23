@@ -29,6 +29,12 @@ void setup()
   Serial.print("begin: ");
   Serial.println(status == AD5242_OK ? "OK" : "ERR");
 
+  // Optional: set RW inside datasheet range (60..120 ohm), default is 90.
+  AD01.setWiperResistance(90);
+
+  // Optional: protect endpoints to avoid 0 or 255 raw codes.
+  AD01.setEndStopProtection(true);
+
   // Apply per-channel A-B calibration values.
   AD01.setABRvalue(1, AB_R1);
   AD01.setABRvalue(2, AB_R2);
@@ -37,7 +43,7 @@ void setup()
 
 void loop()
 {
-  for (int val = 0; val <= AD5242_MAX_VALUE; val += 64)
+  for (int val = 1; val < AD5242_MAX_VALUE; val += 64)
   {
     AD01.write(1, val);
     AD01.write(2, AD5242_MAX_VALUE - val);

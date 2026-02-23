@@ -1,6 +1,6 @@
 //    FILE: AD5242.cpp
 //  AUTHOR: Rob Tillaart
-// VERSION: 0.3.0
+// VERSION: 0.3.1
 // PURPOSE: I2C digital potentiometer AD5242
 //    DATE: 2013-10-12
 //     URL: https://github.com/RobTillaart/AD5242
@@ -23,6 +23,8 @@ AD5242::AD5242(const uint8_t address, const uint8_t hwEnablePin, TwoWire *wire) 
   _O2(0),
   _potRating(0),
   _potRatingAB{ 0, 0 },
+  _wiperResistance(AD5242_RW_DEFAULT),
+  _endStopProtection(true),
   _hasRating(false),
   _hwEnablePin(outputMask(hwEnablePin) == 0 ? 0 : hwEnablePin),
   _lastStatus(AD5242_OK) {
@@ -80,6 +82,26 @@ AD5242Status AD5242::setABRvalue(const uint8_t rdac, const uint32_t abResistance
   return setStatus(AD5242_OK);
 }
 
+AD5242Status AD5242::setWiperResistance(const uint16_t wiperResistance) {
+  uint16_t value = wiperResistance;
+  if (value < AD5242_RW_MIN) value = AD5242_RW_MIN;
+  if (value > AD5242_RW_MAX) value = AD5242_RW_MAX;
+  _wiperResistance = value;
+  return setStatus(AD5242_OK);
+}
+
+uint16_t AD5242::getWiperResistance() const {
+  return _wiperResistance;
+}
+
+void AD5242::setEndStopProtection(const bool enabled) {
+  _endStopProtection = enabled;
+}
+
+bool AD5242::getEndStopProtection() const {
+  return _endStopProtection;
+}
+
 
 uint8_t AD5242::getLastValue(const uint8_t rdac) {
   uint8_t idx = channelIndex(rdac);
@@ -108,12 +130,8 @@ uint32_t AD5242::getResistance(const uint8_t rdac, const char direction) {
     return 0;
   }
 
-  uint32_t bToW = (_lastValue[idx] * rating + (AD5242_MAX_VALUE / 2)) / AD5242_MAX_VALUE;
   setStatus(AD5242_OK);
-  if (dir == 'A') {
-    return rating - bToW;
-  }
-  return bToW;
+  return resistanceForCode(rating, _lastValue[idx], dir);
 }
 
 uint32_t AD5242::getResistance(const uint8_t rdac, const char *direction) {
@@ -132,11 +150,9 @@ uint8_t AD5242::getResistancePercent(const uint8_t rdac, const char direction) {
     return 0;
   }
 
-  uint8_t percent = (_lastValue[idx] * 100 + (AD5242_MAX_VALUE / 2)) / AD5242_MAX_VALUE;
+  uint16_t numerator = (dir == 'B') ? _lastValue[idx] : (256 - _lastValue[idx]);
+  uint8_t percent = (numerator * 100 + 128) / 256;
   setStatus(AD5242_OK);
-  if (dir == 'A') {
-    return 100 - percent;
-  }
   return percent;
 }
 
@@ -147,13 +163,14 @@ uint8_t AD5242::getResistancePercent(const uint8_t rdac, const char *direction) 
 AD5242Status AD5242::write(const uint8_t rdac, const uint8_t value) {
   uint8_t idx = channelIndex(rdac);
   if (idx >= kChannelCount) return setStatus(AD5242_ERR_PARAM);
+  uint8_t safeValue = sanitizeCode(value);
 
   uint8_t cmd = (idx == 0) ? AD5242_RDAC0 : AD5242_RDAC1;
   //  apply the output lines
   cmd = cmd | _O1 | _O2;
-  AD5242Status status = send(cmd, value);
+  AD5242Status status = send(cmd, safeValue);
   if (status == AD5242_OK) {
-    _lastValue[idx] = value;
+    _lastValue[idx] = safeValue;
   }
   return setStatus(status);
 }
@@ -161,6 +178,7 @@ AD5242Status AD5242::write(const uint8_t rdac, const uint8_t value) {
 AD5242Status AD5242::write(const uint8_t rdac, const uint8_t value, const bool O1, const bool O2) {
   uint8_t idx = channelIndex(rdac);
   if (idx >= kChannelCount) return setStatus(AD5242_ERR_PARAM);
+  uint8_t safeValue = sanitizeCode(value);
 
   const uint8_t newO1 = (O1) ? AD5242_O1_HIGH : 0;
   const uint8_t newO2 = (O2) ? AD5242_O2_HIGH : 0;
@@ -168,11 +186,11 @@ AD5242Status AD5242::write(const uint8_t rdac, const uint8_t value, const bool O
   uint8_t cmd = (idx == 0) ? AD5242_RDAC0 : AD5242_RDAC1;
   //  apply the output lines
   cmd = cmd | newO1 | newO2;
-  AD5242Status status = send(cmd, value);
+  AD5242Status status = send(cmd, safeValue);
   if (status == AD5242_OK) {
     _O1 = newO1;
     _O2 = newO2;
-    _lastValue[idx] = value;
+    _lastValue[idx] = safeValue;
   }
   return setStatus(status);
 }
@@ -200,10 +218,12 @@ AD5242Status AD5242::writeResistance(const uint8_t rdac, const uint32_t value, c
   if (rating == 0) return setStatus(AD5242_ERR_NOT_INITIALIZED);
   const char dir = normalizeDirection(direction);
   if (dir == 0) return setStatus(AD5242_ERR_PARAM);
-  if (value > rating) return setStatus(AD5242_ERR_PARAM);
 
-  uint32_t effective = (dir == 'A') ? (rating - value) : value;
-  uint8_t cResistance = (effective * AD5242_MAX_VALUE + rating / 2) / rating;
+  uint8_t maxCode = (dir == 'B') ? sanitizeCode(AD5242_MAX_VALUE) : sanitizeCode(0);
+  uint32_t maxResistance = resistanceForCode(rating, maxCode, dir);
+  if (value > maxResistance) return setStatus(AD5242_ERR_PARAM);
+
+  uint8_t cResistance = codeForResistance(rating, value, dir);
 
   return setStatus(write(rdac, cResistance, O1, O2));
 }
@@ -341,10 +361,46 @@ char AD5242::normalizeDirection(const char *direction) {
   return normalizeDirection(direction[0]);
 }
 
+uint8_t AD5242::sanitizeCode(const uint8_t value) const {
+  if (!_endStopProtection) return value;
+  if (value == 0) return 1;
+  if (value == AD5242_MAX_VALUE) return AD5242_MAX_VALUE - 1;
+  return value;
+}
+
 uint32_t AD5242::potRatingFor(const uint8_t idx) const {
   if (idx >= kChannelCount) return 0;
   if (_potRatingAB[idx] != 0) return _potRatingAB[idx];
   return _potRating;
+}
+
+uint32_t AD5242::resistanceForCode(const uint32_t rating, const uint8_t code, const char direction) const {
+  uint32_t rw = _wiperResistance;
+  if (direction == 'B') {
+    // RWB(D) = D/256 * RAB + RW
+    return (uint32_t)((((uint64_t)code * rating) + 128) / 256) + rw;
+  }
+  // RWA(D) = (256 - D)/256 * RAB + RW
+  uint64_t upper = (uint64_t)(256 - code) * rating;
+  return (uint32_t)((upper + 128) / 256) + rw;
+}
+
+uint8_t AD5242::codeForResistance(const uint32_t rating, const uint32_t resistance, const char direction) const {
+  uint32_t rw = _wiperResistance;
+  uint32_t effective = (resistance <= rw) ? 0 : (resistance - rw);
+  uint64_t x64 = ((uint64_t)effective * 256 + rating / 2) / rating;  // x in equation space
+  uint32_t x = (x64 > 256) ? 256 : (uint32_t)x64;
+
+  uint8_t code = 0;
+  if (direction == 'B') {
+    if (x > 255) x = 255;
+    code = (uint8_t)x;
+  } else {
+    uint32_t d = 256 - x;
+    if (d > 255) d = 255;
+    code = (uint8_t)d;
+  }
+  return sanitizeCode(code);
 }
 
 AD5242Status AD5242::setStatus(const AD5242Status status) {

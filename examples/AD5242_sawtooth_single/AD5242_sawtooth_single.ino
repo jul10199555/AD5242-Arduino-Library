@@ -31,7 +31,7 @@ void setup()
 
 void loop()
 {
-  for (int val = 0; val < 255; val++)
+  for (int val = 1; val < 255; val++)
   {
     AD01.write(2, val);
     Serial.println(val);

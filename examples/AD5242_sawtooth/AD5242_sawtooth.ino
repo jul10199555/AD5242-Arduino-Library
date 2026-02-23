@@ -33,7 +33,7 @@ void setup()
 
 void loop()
 {
-  for (int val = 0; val < 256; val++)
+  for (int val = 1; val < 255; val++)
   {
     //  two "inverted" sawtooths
     AD01.write(1, 255 - val);

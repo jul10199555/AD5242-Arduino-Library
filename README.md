@@ -51,13 +51,24 @@ void setup() {
 - `AD5242Status lastStatus() const` returns the status of the last API call that sets it.
 - `uint8_t hwEnablePin() const` returns the configured HW enable output (1 or 2), or 0 if disabled.
 - `AD5242Status setABRvalue(uint8_t rdac, uint32_t abResistance)` sets the measured A-to-B resistance for the channel.
+- `AD5242Status setWiperResistance(uint16_t wiperResistance = AD5242_RW_DEFAULT)` sets RW (60..120 ohm, default 90). Values outside the range are clamped.
+- `uint16_t getWiperResistance() const` gets the configured RW.
+- `void setEndStopProtection(bool enabled = true)` enables/disables raw-code clamp at end stops.
+- `bool getEndStopProtection() const` gets end-stop protection state.
 
 Valid ratings:
 - `AD5242_R10K`
 - `AD5242_R100K`
 - `AD5242_R1M`
+Wiper resistance constants:
+- `AD5242_RW_MIN`
+- `AD5242_RW_MAX`
+- `AD5242_RW_DEFAULT`
 
 If `setABRvalue()` is used, that per-channel value is used for resistance calculations and `writeResistance()` instead of the nominal rating.
+Resistance equations follow the datasheet model:
+- `RWB(D) = D/256 * RAB + RW`
+- `RWA(D) = (256 - D)/256 * RAB + RW`
 
 ### Read / Cached Values
 
@@ -92,6 +103,7 @@ Use `lastStatus()` to detect errors from these value-returning methods.
 
 Direction selects whether `value` refers to A-to-wiper (`'A'`) or B-to-wiper (`'B'`, default).
 `rdac` is **1** or **2**.
+If end-stop protection is enabled, raw writes clamp `0 -> 1` and `255 -> 254` (no error/warning).
 
 ### Output Lines
 
@@ -120,8 +132,8 @@ If `hwEnablePin` is configured, `begin()` will enable it by default.
 
 ### Reset / Misc
 
-- `AD5242Status reset()` sets both channels to midpoint and outputs to LOW.
-- `AD5242Status zeroAll()` sets both channels to 0 and outputs to LOW.
+- `AD5242Status reset()` sets both channels to midpoint and outputs to LOW (then re-enables HW pin if configured).
+- `AD5242Status zeroAll()` sets both channels to 0 and outputs to LOW (`1` when end-stop protection is enabled).
 - `AD5242Status midScaleReset(uint8_t rdac)` resets one channel to midpoint.
 - `AD5242Status readBackRegister(uint8_t &value)` reads the last value written (datasheet).
 - `AD5242Status shutDown()` issues the shutdown command (datasheet).

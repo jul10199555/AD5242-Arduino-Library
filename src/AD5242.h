@@ -2,7 +2,7 @@
 
 //    FILE: AD5242.h
 //  AUTHOR: Rob Tillaart
-// VERSION: 0.3.0
+// VERSION: 0.3.1
 // PURPOSE: I2C digital PotentioMeter AD5242
 //    DATE: 2013-10-12
 //     URL: https://github.com/RobTillaart/AD5242
@@ -11,7 +11,7 @@
 #include <Wire.h>
 
 
-#define AD5242_LIB_VERSION    (F("0.3.0"))
+#define AD5242_LIB_VERSION    (F("0.3.1"))
 
 #define AD5242_MIDPOINT       127
 #define AD5242_MAX_VALUE      255
@@ -19,6 +19,9 @@
 static const uint32_t AD5242_R10K  = 10000;
 static const uint32_t AD5242_R100K = 100000;
 static const uint32_t AD5242_R1M   = 1000000;
+static const uint16_t AD5242_RW_MIN = 60;
+static const uint16_t AD5242_RW_MAX = 120;
+static const uint16_t AD5242_RW_DEFAULT = 90;
 
 enum AD5242Status : uint8_t
 {
@@ -42,6 +45,10 @@ public:
   AD5242Status lastStatus() const;
   uint8_t hwEnablePin() const;
   AD5242Status setABRvalue(const uint8_t rdac, const uint32_t abResistance);
+  AD5242Status setWiperResistance(const uint16_t wiperResistance = AD5242_RW_DEFAULT);
+  uint16_t getWiperResistance() const;
+  void setEndStopProtection(const bool enabled = true);
+  bool getEndStopProtection() const;
 
   // READ WRITE
   // RDAC channels are 1 or 2 (datasheet naming).
@@ -77,7 +84,7 @@ public:
 
   // RESET
   AD5242Status reset();    // reset both channels to AD5242_MIDPOINT and O1/O2 to LOW
-  AD5242Status zeroAll();  // set both channels to 0 and O1/O2 to LOW
+  AD5242Status zeroAll();  // set both channels to 0 (or 1 if protection enabled) and O1/O2 to LOW
   AD5242Status midScaleReset(const uint8_t rdac);
 
   // DEBUGGING
@@ -90,7 +97,10 @@ private:
   static uint8_t outputMask(const uint8_t output);
   static char normalizeDirection(const char direction);
   static char normalizeDirection(const char *direction);
+  uint8_t sanitizeCode(const uint8_t value) const;
   uint32_t potRatingFor(const uint8_t idx) const;
+  uint32_t resistanceForCode(const uint32_t rating, const uint8_t code, const char direction) const;
+  uint8_t codeForResistance(const uint32_t rating, const uint32_t resistance, const char direction) const;
   AD5242Status setStatus(const AD5242Status status);
 
   AD5242Status send(const uint8_t cmd, const uint8_t value);
@@ -102,6 +112,8 @@ private:
   uint8_t _O2;
   uint32_t _potRating;
   uint32_t _potRatingAB[kChannelCount];
+  uint16_t _wiperResistance;
+  bool _endStopProtection;
   bool _hasRating;
   uint8_t _hwEnablePin;
   AD5242Status _lastStatus;

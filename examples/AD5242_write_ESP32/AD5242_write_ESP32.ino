@@ -31,14 +31,14 @@ void setup()
 
 void loop()
 {
-  for (int val = 0; val < 255; val++)
+  for (int val = 1; val < 255; val++)
   {
     AD5242Status rv = AD01.write(1, val);
     if (val == 200)
     {
       rv = AD01.write(1, val, true, false);
     }
-    if (val == 0)
+    if (val == 1)
     {
       rv = AD01.write(1, val, false, true);
     }

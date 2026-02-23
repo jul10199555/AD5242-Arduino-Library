@@ -33,7 +33,7 @@ void loop()
 {
   for (int rdac = 1; rdac <= 2; rdac++)
   {
-    for (int val = 0; val < 255; val++)
+    for (int val = 1; val < 255; val++)
     {
       test(rdac, val);
     }

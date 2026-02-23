@@ -31,16 +31,16 @@ void setup()
 
 void loop()
 {
-  Serial.println(255);
-  AD01.write(2, 255);
+  Serial.println(254);
+  AD01.write(2, 254);
   delay(1000);
 
   Serial.println("midScaleReset(2)");
   AD01.midScaleReset(2);
   delay(1000);
 
-  Serial.println(0);
-  AD01.write(2, 0);
+  Serial.println(1);
+  AD01.write(2, 1);
   delay(1000);
 
   Serial.println("midScaleReset(2)");

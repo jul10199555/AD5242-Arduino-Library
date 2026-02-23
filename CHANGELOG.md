@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.3.1] - 2026-02-23
+- align resistance calculations with datasheet equations using `/256` and `+RW`.
+- add configurable wiper resistance (`RW`) with default 90 ohm.
+- add configurable end-stop protection to clamp raw writes (`0->1`, `255->254`).
+
 ## [0.3.0] - 2026-02-12
 - breaking: switch RDAC numbering to 1/2 to match datasheet.
 - breaking: simplify cached read methods to return values directly and add lastStatus().
