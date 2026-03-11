@@ -2,7 +2,7 @@
 
 //    FILE: AD5242.h
 //  AUTHOR: Rob Tillaart
-// VERSION: 0.3.1
+// VERSION: 0.3.2
 // PURPOSE: I2C digital PotentioMeter AD5242
 //    DATE: 2013-10-12
 //     URL: https://github.com/RobTillaart/AD5242
@@ -11,7 +11,7 @@
 #include <Wire.h>
 
 
-#define AD5242_LIB_VERSION    (F("0.3.1"))
+#define AD5242_LIB_VERSION    (F("0.3.2"))
 
 #define AD5242_MIDPOINT       127
 #define AD5242_MAX_VALUE      255
@@ -57,6 +57,10 @@ public:
   uint32_t getResistance(const uint8_t rdac, const char *direction);
   uint8_t getResistancePercent(const uint8_t rdac, const char direction = 'B');
   uint8_t getResistancePercent(const uint8_t rdac, const char *direction);
+  uint32_t codeToResistance(const uint8_t rdac, const uint8_t code, const char direction = 'B');
+  uint32_t codeToResistance(const uint8_t rdac, const uint8_t code, const char *direction);
+  uint8_t resistanceToCode(const uint8_t rdac, const uint32_t resistance, const char direction = 'B');
+  uint8_t resistanceToCode(const uint8_t rdac, const uint32_t resistance, const char *direction);
   AD5242Status write(const uint8_t rdac, const uint8_t value);
   AD5242Status write(const uint8_t rdac, const uint8_t value, const bool O1, const bool O2);
   AD5242Status writeResistance(const uint8_t rdac, const uint32_t value);

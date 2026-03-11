@@ -1,6 +1,6 @@
 //    FILE: AD5242.cpp
 //  AUTHOR: Rob Tillaart
-// VERSION: 0.3.1
+// VERSION: 0.3.2
 // PURPOSE: I2C digital potentiometer AD5242
 //    DATE: 2013-10-12
 //     URL: https://github.com/RobTillaart/AD5242
@@ -158,6 +158,56 @@ uint8_t AD5242::getResistancePercent(const uint8_t rdac, const char direction) {
 
 uint8_t AD5242::getResistancePercent(const uint8_t rdac, const char *direction) {
   return getResistancePercent(rdac, normalizeDirection(direction));
+}
+
+uint32_t AD5242::codeToResistance(const uint8_t rdac, const uint8_t code, const char direction) {
+  const char dir = normalizeDirection(direction);
+  if (dir == 0) {
+    setStatus(AD5242_ERR_PARAM);
+    return 0;
+  }
+  uint8_t idx = channelIndex(rdac);
+  if (idx >= kChannelCount) {
+    setStatus(AD5242_ERR_PARAM);
+    return 0;
+  }
+  uint32_t rating = potRatingFor(idx);
+  if (rating == 0) {
+    setStatus(AD5242_ERR_NOT_INITIALIZED);
+    return 0;
+  }
+
+  setStatus(AD5242_OK);
+  return resistanceForCode(rating, sanitizeCode(code), dir);
+}
+
+uint32_t AD5242::codeToResistance(const uint8_t rdac, const uint8_t code, const char *direction) {
+  return codeToResistance(rdac, code, normalizeDirection(direction));
+}
+
+uint8_t AD5242::resistanceToCode(const uint8_t rdac, const uint32_t resistance, const char direction) {
+  const char dir = normalizeDirection(direction);
+  if (dir == 0) {
+    setStatus(AD5242_ERR_PARAM);
+    return 0;
+  }
+  uint8_t idx = channelIndex(rdac);
+  if (idx >= kChannelCount) {
+    setStatus(AD5242_ERR_PARAM);
+    return 0;
+  }
+  uint32_t rating = potRatingFor(idx);
+  if (rating == 0) {
+    setStatus(AD5242_ERR_NOT_INITIALIZED);
+    return 0;
+  }
+
+  setStatus(AD5242_OK);
+  return codeForResistance(rating, resistance, dir);
+}
+
+uint8_t AD5242::resistanceToCode(const uint8_t rdac, const uint32_t resistance, const char *direction) {
+  return resistanceToCode(rdac, resistance, normalizeDirection(direction));
 }
 
 AD5242Status AD5242::write(const uint8_t rdac, const uint8_t value) {

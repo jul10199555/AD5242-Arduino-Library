@@ -82,6 +82,10 @@ Channel numbers are **1** and **2** (datasheet naming).
 - `uint32_t getResistance(uint8_t rdac, const char *direction)`
 - `uint8_t getResistancePercent(uint8_t rdac, char direction = 'B')`
 - `uint8_t getResistancePercent(uint8_t rdac, const char *direction)`
+- `uint32_t codeToResistance(uint8_t rdac, uint8_t code, char direction = 'B')`
+- `uint32_t codeToResistance(uint8_t rdac, uint8_t code, const char *direction)`
+- `uint8_t resistanceToCode(uint8_t rdac, uint32_t resistance, char direction = 'B')`
+- `uint8_t resistanceToCode(uint8_t rdac, uint32_t resistance, const char *direction)`
 
 Direction:
 - `'B'` (default) returns B-to-wiper resistance.

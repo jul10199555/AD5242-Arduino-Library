@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog and this project adheres to Semantic Versioning.
 
+## [0.3.2] - 2026-03-11
+- bump library version to 0.3.2.
+- add public conversion helpers: `codeToResistance()` and `resistanceToCode()`.
+- align A/B direction behavior notes in docs/examples.
+
 ## [0.3.1] - 2026-02-23
 - align resistance calculations with datasheet equations using `/256` and `+RW`.
 - add configurable wiper resistance (`RW`) with default 90 ohm.

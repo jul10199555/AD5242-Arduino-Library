@@ -30,6 +30,8 @@ getEndStopProtection	KEYWORD2
 getLastValue	KEYWORD2
 getResistance	KEYWORD2
 getResistancePercent	KEYWORD2
+codeToResistance	KEYWORD2
+resistanceToCode	KEYWORD2
 write	KEYWORD2
 writeResistance	KEYWORD2
 
